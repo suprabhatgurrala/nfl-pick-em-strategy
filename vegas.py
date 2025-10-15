@@ -3,6 +3,41 @@ import pandas as pd
 
 BASE_URL = "https://guest.api.arcadia.pinnacle.com/0.1/leagues/889"
 
+vegas_name_to_abbrev = {
+    "Arizona Cardinals": "ARI",
+    "Atlanta Falcons": "ATL",
+    "Baltimore Ravens": "BAL",
+    "Buffalo Bills": "BUF",
+    "Carolina Panthers": "CAR",
+    "Chicago Bears": "CHI",
+    "Cincinnati Bengals": "CIN",
+    "Cleveland Browns": "CLE",
+    "Dallas Cowboys": "DAL",
+    "Denver Broncos": "DEN",
+    "Detroit Lions": "DET",
+    "Green Bay Packers": "GB",
+    "Houston Texans": "HOU",
+    "Indianapolis Colts": "IND",
+    "Jacksonville Jaguars": "JAC",
+    "Kansas City Chiefs": "KC",
+    "Las Vegas Raiders": "LV",
+    "Los Angeles Chargers": "LAC",
+    "Los Angeles Rams": "LAR",
+    "Miami Dolphins": "MIA",
+    "Minnesota Vikings": "MIN",
+    "New England Patriots": "NE",
+    "New Orleans Saints": "NO",
+    "New York Giants": "NYG",
+    "New York Jets": "NYJ",
+    "Philadelphia Eagles": "PHI",
+    "Pittsburgh Steelers": "PIT",
+    "San Francisco 49ers": "SF",
+    "Seattle Seahawks": "SEA",
+    "Tampa Bay Buccaneers": "TB",
+    "Tennessee Titans": "TEN",
+    "Washington Commanders": "WAS"
+}
+
 
 def map_id_to_odds(matchup_id, odds_dict):
     """
@@ -36,11 +71,11 @@ def get_vegas_data():
                     away_team = participant["name"]
             matchups_list.append(
                 {
-                    "id": matchup_id,
-                    "away": away_team,
-                    "home": home_team,
-                    "status": i["status"],
-                    "startTime": i["startTime"],
+                    "Pinnacle ID": matchup_id,
+                    "Away": vegas_name_to_abbrev[away_team],
+                    "Home": vegas_name_to_abbrev[home_team],
+                    "Status": i["status"],
+                    "Start Time": i["startTime"],
                 }
             )
 
@@ -59,15 +94,15 @@ def get_vegas_data():
                     away_ml = price_data["price"]
             if home_ml or away_ml:
                 odds_dict[matchup_id] = {
-                    "away_ml": away_ml,
-                    "home_ml": home_ml,
+                    "Pinnacle Away ML": away_ml,
+                    "Pinnacle Home ML": home_ml,
                 }
 
     df = pd.DataFrame(matchups_list)
-    df[["home_ml", "away_ml"]] = df.apply(
-        lambda x: map_id_to_odds(x.id, odds_dict), axis=1
+    df[["Pinnacle Away ML", "Pinnacle Home ML"]] = df.apply(
+        lambda x: map_id_to_odds(x["Pinnacle ID"], odds_dict), axis=1
     )
-    return df.sort_values(["startTime", "id"])
+    return df.sort_values(["Start Time", "Pinnacle ID"])
 
 
 if __name__ == "__main__":

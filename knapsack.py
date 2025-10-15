@@ -2,6 +2,7 @@ import numpy as np
 
 from monte_carlo import vig_adj_prob
 from cbs_data import get_pick_data
+from vegas import get_vegas_data
 import argparse
 
 
@@ -59,20 +60,25 @@ if __name__ == "__main__":
 
     risk_percentage = max(0.0, min(args.risk, 100.0)) / 100
     df = get_pick_data()
-    df[["Away Prob", "Home Prob"]] = df.apply(
-        lambda x: vig_adj_prob(x["Away ML"], x["Home ML"]), axis=1, result_type="expand"
+    pinnacle_df = get_vegas_data()
+    df = df.merge(pinnacle_df[["Away", "Home", "Pinnacle Away ML", "Pinnacle Home ML"]], on=["Away", "Home"])
+    df[["BetMGM Away Prob", "BetMGM Home Prob"]] = df.apply(
+        lambda x: vig_adj_prob(x["BetMGM Away ML"], x["BetMGM Home ML"]), axis=1, result_type="expand"
+    )
+    df[["Pinnacle Away Prob", "Pinnacle Home Prob"]] = df.apply(
+        lambda x: vig_adj_prob(x["Pinnacle Away ML"], x["Pinnacle Home ML"]), axis=1, result_type="expand"
     )
 
     # Cost in expected wins of choosing the underdog
-    df["Favorite"] = np.where(df["Home Prob"] >= df["Away Prob"], "Home", "Away")
-    df["Cost"] = (df["Home Prob"] - df["Away Prob"]).abs()
+    df["Favorite"] = np.where(df["Pinnacle Home Prob"] >= df["Pinnacle Away Prob"], "Home", "Away")
+    df["Cost"] = (df["Pinnacle Home Prob"] - df["Pinnacle Away Prob"]).abs()
     df["Value"] = np.where(
         df["Favorite"] == "Home",
         df["Home Pick %"] - df["Away Pick %"],
         df["Away Pick %"] - df["Home Pick %"],
     )
 
-    max_expected_wins = df[["Away Prob", "Home Prob"]].max(axis=1).sum()
+    max_expected_wins = df[["Pinnacle Away Prob", "Pinnacle Home Prob"]].max(axis=1).sum()
     print(f"Max Expected Wins: {max_expected_wins:.2f}")
     df["Pick Underdog"] = knapsack_solver(df, max_expected_wins * risk_percentage)
     df["Pick"] = df.apply(pick_team, axis=1)

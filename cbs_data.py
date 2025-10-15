@@ -45,8 +45,8 @@ def refs_to_data(game, apollo_state):
             "Home": apollo_state[game["homeTeamRef"]]["abbrev"],
             "Away Pick %": away_pick_percent,
             "Home Pick %": home_pick_percent,
-            "Away ML": awayMoneyLine,
-            "Home ML": homeMoneyLine,
+            "BetMGM Away ML": awayMoneyLine,
+            "BetMGM Home ML": homeMoneyLine,
         }
     )
 

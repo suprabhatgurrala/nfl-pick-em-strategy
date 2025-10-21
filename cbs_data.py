@@ -55,6 +55,12 @@ def get_pick_data():
     nextjs_data = get_nextjs_data()
     apollo_state = nextjs_data["pageProps"]["__APOLLO_STATE__"]
     games = []
+    oddsMarketInput = {
+        "input": {
+            "poolId": POOL_ID
+        }
+    }
+    oddsMarketKey = f"oddsMarket({json.dumps(oddsMarketInput, separators=(',', ':'))})"
     for state_key, state_value in apollo_state.items():
         if "PoolEvent" in state_key:
             if state_value["isLocked"] == False:
@@ -63,9 +69,7 @@ def get_pick_data():
                         "awayTeamRef": state_value["awayTeam"]["__ref"],
                         "homeTeamRef": state_value["homeTeam"]["__ref"],
                         "eventExtraRef": state_value["extra"]["__ref"],
-                        "oddsMarketRef": state_value[
-                            'oddsMarket({"input":{"poolId":"izxw65dcmfwgyudjmnvwk3knmfxgcz3fojig633mhiytgojwguytama="}})'
-                        ]["__ref"],
+                        "oddsMarketRef": state_value[oddsMarketKey]["__ref"],
                     }
                 )
 

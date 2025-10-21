@@ -55,11 +55,7 @@ def get_pick_data():
     nextjs_data = get_nextjs_data()
     apollo_state = nextjs_data["pageProps"]["__APOLLO_STATE__"]
     games = []
-    oddsMarketInput = {
-        "input": {
-            "poolId": POOL_ID
-        }
-    }
+    oddsMarketInput = {"input": {"poolId": POOL_ID}}
     oddsMarketKey = f"oddsMarket({json.dumps(oddsMarketInput, separators=(',', ':'))})"
     for state_key, state_value in apollo_state.items():
         if "PoolEvent" in state_key:

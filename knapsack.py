@@ -61,13 +61,16 @@ if __name__ == "__main__":
     risk_percentage = max(0.0, min(args.risk, 100.0)) / 100
     df = get_pick_data()
     pinnacle_df = get_vegas_data()
-    df = df.merge(pinnacle_df[["Away", "Home", "Pinnacle Away ML", "Pinnacle Home ML"]], on=["Away", "Home"])
+    df = df.merge(pinnacle_df[["Away", "Home", "Pinnacle Away ML", "Pinnacle Home ML"]], how="left", on=["Away", "Home"])
     df[["BetMGM Away Prob", "BetMGM Home Prob"]] = df.apply(
         lambda x: vig_adj_prob(x["BetMGM Away ML"], x["BetMGM Home ML"]), axis=1, result_type="expand"
     )
     df[["Pinnacle Away Prob", "Pinnacle Home Prob"]] = df.apply(
         lambda x: vig_adj_prob(x["Pinnacle Away ML"], x["Pinnacle Home ML"]), axis=1, result_type="expand"
     )
+
+    df["Pinnacle Away Prob"] = df["Pinnacle Away Prob"].fillna(df["BetMGM Away Prob"])
+    df["Pinnacle Home Prob"] = df["Pinnacle Home Prob"].fillna(df["BetMGM Home Prob"])
 
     # Cost in expected wins of choosing the underdog
     df["Favorite"] = np.where(df["Pinnacle Home Prob"] >= df["Pinnacle Away Prob"], "Home", "Away")

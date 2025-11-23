@@ -10,7 +10,7 @@ COOKIE_PID = config["cookiePid"]
 
 
 def get_nextjs_data():
-    url = "https://picks.cbssports.com/_next/data/1758637300423/football/pickem/pools/{pool_id}.json"
+    url = "https://picks.cbssports.com/_next/data/1763480815229/football/pickem/pools/{pool_id}.json"
     params = {"poolId": POOL_ID}
     cookies = {
         "pid": COOKIE_PID,
@@ -39,10 +39,13 @@ def refs_to_data(game, apollo_state):
         float(apollo_state[game["eventExtraRef"]]["homeTeamPickemPercentOwned"]) / 100
     )
 
+    away_team = apollo_state[game["awayTeamRef"]]
+    home_team = apollo_state[game["homeTeamRef"]]
+
     return pd.Series(
         {
-            "Away": apollo_state[game["awayTeamRef"]]["abbrev"],
-            "Home": apollo_state[game["homeTeamRef"]]["abbrev"],
+            "Away": f"{away_team["location"]} {away_team["nickName"]}",
+            "Home": f"{home_team["location"]} {home_team["nickName"]}",
             "Away Pick %": away_pick_percent,
             "Home Pick %": home_pick_percent,
             "BetMGM Away ML": awayMoneyLine,

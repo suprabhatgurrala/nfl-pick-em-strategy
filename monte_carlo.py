@@ -10,6 +10,7 @@ from dask.distributed import Client
 import dask
 
 from cbs_data import get_pick_data
+from vegas import get_vegas_data
 
 
 def american_to_implied(odds: int) -> float:
@@ -77,9 +78,25 @@ def compute_stats(my_picks, winners, results):
 
 if __name__ == "__main__":
     df = get_pick_data()
-    df[["Away Prob", "Home Prob"]] = df.apply(
-        lambda x: vig_adj_prob(x["Away ML"], x["Home ML"]), axis=1, result_type="expand"
+    pinnacle_df = get_vegas_data()
+    df = df.merge(
+        pinnacle_df[["Away", "Home", "Pinnacle Away ML", "Pinnacle Home ML"]],
+        how="left",
+        on=["Away", "Home"],
     )
+    df[["BetMGM Away Prob", "BetMGM Home Prob"]] = df.apply(
+        lambda x: vig_adj_prob(x["BetMGM Away ML"], x["BetMGM Home ML"]),
+        axis=1,
+        result_type="expand",
+    )
+    df[["Pinnacle Away Prob", "Pinnacle Home Prob"]] = df.apply(
+        lambda x: vig_adj_prob(x["Pinnacle Away ML"], x["Pinnacle Home ML"]),
+        axis=1,
+        result_type="expand",
+    )
+
+    df["Away Prob"] = df["Pinnacle Away Prob"].fillna(df["BetMGM Away Prob"])
+    df["Home Prob"] = df["Pinnacle Home Prob"].fillna(df["BetMGM Home Prob"])
     team_to_win_prob = {}
     df.apply(map_team_to_win_prob, axis=1)
     # TODO: daskify winners and results which should reduce memory footprint when parallelizing
